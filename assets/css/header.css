@@ -1,0 +1,72 @@
+    /* Container cho tài khoản và giỏ hàng */
+.cart_area {
+    position: relative;
+}
+
+/* Hiển thị tài khoản */
+.account_area {
+    position: relative;
+}
+
+.account_link {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
+
+/* Icon và tên tài khoản */
+.user-account a {
+    display: flex;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+}
+
+.user-account .account-text {
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+/* Dropdown menu */
+.account-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    z-index: 10;
+}
+
+.account-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-dropdown li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.account-dropdown li a {
+    color: #333;
+    text-decoration: none;
+}
+
+.account-dropdown li a:hover {
+    background-color: #f1f1f1;
+}
+
+/* Hiển thị dropdown khi hover vào tài khoản */
+.user-account:hover .account-dropdown {
+    display: block;
+}
+
+/* Định dạng icon người dùng */
+.account_link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
