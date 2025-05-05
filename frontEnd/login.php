@@ -18,30 +18,9 @@ if (isset($_SESSION['user'])) {
     <link rel="icon" type="img/jpg" href="../assets/img/logo/2.icon.png">
     <link rel="stylesheet" href="../assets/css/plugins.css">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .error-message {
-            color: red;
-            font-size: 0.9em;
-            margin-top: 5px;
-            display: none;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-    </style>
-</head>
+    <link rel="stylesheet" href="../assets/css/login.css">
+
+    </head>
 
 <body>
     <header class="header_area header_three">

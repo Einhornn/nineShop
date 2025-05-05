@@ -1,72 +1,68 @@
-    /* Container cho tài khoản và giỏ hàng */
-.cart_area {
-    position: relative;
-}
-
-/* Hiển thị tài khoản */
-.account_area {
-    position: relative;
-}
-
-.account_link {
+/* Bọc toàn bộ thành phần đẩy sang phải */
+.account-wrapper {
     display: flex;
-    align-items: center;
-    font-size: 16px;
+    justify-content: flex-end;
 }
 
-/* Icon và tên tài khoản */
-.user-account a {
-    display: flex;
-    align-items: center;
-    color: #333;
-    text-decoration: none;
-}
-
-.user-account .account-text {
-    margin-left: 8px;
+/* Cả user-account và user-login dùng chung kiểu */
+.user-account,
+.user-login {
+    position: relative;
     font-weight: bold;
+}
+
+/* Nút chính */
+.user-account > a,
+.user-login > a {
+    background-color: gray;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.user-account > a:hover,
+.user-login > a:hover {
+    background-color: black;
 }
 
 /* Dropdown menu */
 .account-dropdown {
     display: none;
     position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 200px;
-    z-index: 10;
+    top: 110%;
+    right: 0;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    width: 180px;
+    z-index: 100;
+    overflow: hidden;
 }
 
 .account-dropdown ul {
-    list-style: none;
-    padding: 0;
     margin: 0;
-}
-
-.account-dropdown li {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
+    padding: 0;
+    list-style: none;
 }
 
 .account-dropdown li a {
-    color: #333;
+    display: block;
+    padding: 12px 16px;
     text-decoration: none;
+    color: #333;
+    transition: background-color 0.2s ease;
 }
 
 .account-dropdown li a:hover {
-    background-color: #f1f1f1;
+    background-color: #f0f0f0;
 }
 
-/* Hiển thị dropdown khi hover vào tài khoản */
+/* Hover để hiển thị dropdown */
 .user-account:hover .account-dropdown {
     display: block;
-}
-
-/* Định dạng icon người dùng */
-.account_link i {
-    margin-right: 8px;
-    font-size: 18px;
 }
