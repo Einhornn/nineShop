@@ -5,7 +5,7 @@
                 <div class="row align-items-center">
                     <div class="col-12">
                         <div class="slider_content content_one">
-                            <a href="shop.php">Khám phá ngay</a>
+                            <a href="index.php">Khám phá ngay</a>
                         </div>    
                     </div>
                 </div>
@@ -27,7 +27,6 @@
                 <div class="row align-items-center">
                     <div class="col-12">
                         <div class="slider_content content_three">
-                            <!-- <img src="../assets/img/slider/content5.png" alt=""> -->
                             <p>Đa dạng mẫu mã, giá cả</p>
                         </div>    
                     </div>

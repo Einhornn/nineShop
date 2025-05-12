@@ -1,15 +1,8 @@
 <?php
-// session_start();
-// if (!isset($_SESSION['admin_id'])) {
-//     header('Location: login.php');
-//     exit;
-// }
-
-// Kết nối cơ sở dữ liệu
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "clothingshop (1)";
+$dbname = "clothingstore";
 
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
@@ -19,7 +12,6 @@ try {
     die("Kết nối thất bại: " . $e->getMessage());
 }
 
-// Xử lý trang hiển thị
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 ?>
 
@@ -36,7 +28,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Inline CSS để tùy chỉnh giao diện -->
     <style>
         body {
             margin: 0;
@@ -311,19 +302,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         <h2><a href = "admin.php">Admin</a></h2>
         <ul>
             <li>
-                <a href="?page=staff" class="menu-toggle">Quản lý nhân viên</a>
+                <a href="?page=staff" class="menu-toggle">Quản lý người dùng</a>
                 <ul>
-                    <li><a href="?page=staff">Danh sách nhân viên</a></li>
-                    <li><a href="?page=staff_accounts">Tài khoản nhân viên</a></li>
-                    <li><a href="?page=staff_activity">Lịch sử hoạt động</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="?page=customers" class="menu-toggle">Quản lý khách hàng</a>
-                <ul>
-                    <li><a href="?page=customers">Danh sách khách hàng</a></li>
-                    <li><a href="?page=customer_orders">Lịch sử mua hàng</a></li>
-                    <li><a href="?page=customer_types">Phân loại khách hàng</a></li>
+                    <li><a href="?page=staff">Danh sách người dùng</a></li>
+                    <li><a href="?page=staff_accounts">Tài khoản người dùng</a></li>
                 </ul>
             </li>
             <li>
@@ -349,26 +331,16 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 <a href="?page=roles" class="menu-toggle">Quản lý quyền</a>
                 <ul>
                     <li><a href="?page=roles">Phân quyền</a></li>
-                    <!-- <li><a href="?page=permissions">Quyền truy cập</a></li>
-                    <li><a href="?page=role_logs">Nhật ký quyền</a></li> -->
                 </ul>
             </li>
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <?php if ($page == 'dashboard'): ?>
-            <!-- <h1>Bảng điều khiển Admin</h1>
-            <div class="table-container">
-                <h2>Tổng quan</h2>
-                <p>Chọn một mục từ menu bên trái để bắt đầu quản lý cửa hàng quần áo nam.</p>
-            </div>  -->
-
             <?php elseif ($page == 'staff'): ?>
-    <h1>Danh sách nhân viên</h1>
+    <h1>Danh sách người dùng</h1>
     <div class="table-container">
-        <!-- Thanh tìm kiếm -->
         <div class="search-container">
             <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên...">
             <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên...">

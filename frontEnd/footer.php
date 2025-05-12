@@ -24,10 +24,8 @@
                                 <p>Email: manguyenanhkhoa@gmail.com</p>
                                 <ul>
                                     <li><a href="#" title="Instagram"><i class="fa fa-instagram"></i></a></li>
-                                    <li><a href="#" title="TikTok"><i class="fa fa-tiktok"></i></a></li>
                                     <li><a href="#" title="Facebook"><i class="fa fa-facebook"></i></a></li>
                                     <li><a href="#" title="YouTube"><i class="fa fa-youtube"></i></a></li>
-                                    <li><a href="#" title="Shopee"><i class="fa fa-shopping-cart"></i></a></li>
                                 </ul>
                               
                             </div>

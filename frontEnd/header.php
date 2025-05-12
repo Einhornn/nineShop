@@ -1,5 +1,11 @@
 <?php
 session_start();
+include '../backEnd/config-database.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 ?>
 <!doctype html>
 <html class="no-js" lang="en">
@@ -68,7 +74,8 @@ session_start();
                                 <ul>
                                     <li><a href="my-account.php">Tài khoản</a></li>
                                     <li><a href="cart.php">Giỏ hàng</a></li>
-                                    <li><a href="logout.php">Đăng xuất</a></li>
+                                    <li><a href="logout.php" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất?')">Đăng xuất</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>

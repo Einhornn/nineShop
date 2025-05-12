@@ -16,12 +16,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Kiểm tra có user không
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
-        // Lưu thông tin vào session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_email'] = $user['email'];
+        $_SESSION['avatar'] = $user['avatar'] ?? "https://api.dicebear.com/7.x/adventurer/svg?seed=" . urlencode($user['name']);
 
-        // Điều hướng về trang chủ sau khi đăng nhập thành công
+
         header('Location: ../frontEnd/index.php');
         exit();
     } else {
