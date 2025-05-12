@@ -2,10 +2,9 @@
 session_start();
 if (isset($_SESSION['user'])) {
     echo "Xin chào, " . htmlspecialchars($_SESSION['user']);
+
 }
 ?>
-
-
 <!doctype html>
 <html class="no-js" lang="vi">
 

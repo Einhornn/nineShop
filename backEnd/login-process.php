@@ -51,15 +51,21 @@ if (!password_verify($password, $user['password_hash'])) {
     exit;
 }
 
-// Đăng nhập thành công, lưu thông tin vào session
 $_SESSION['user_id'] = $user['id'];
 $_SESSION['user_name'] = $user['name'];
+$_SESSION['user_email'] = $user['email'];
 
-// Chuyển hướng đến trang chủ
+$stmt = $conn->prepare("SELECT role FROM user_roles WHERE user_id = ?");
+$stmt->bind_param("i", $user['id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$roleRow = $result->fetch_assoc();
+$_SESSION['user_role'] = $roleRow['role'] ?? 'khachhang';
+
 $_SESSION['success'] = 'Đăng nhập thành công!';
 header('Location: ../frontEnd/index.php');
 exit;
 
 $conn->close();
-ob_end_flush(); // Xả buffer
+ob_end_flush(); 
 ?>

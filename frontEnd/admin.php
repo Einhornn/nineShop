@@ -1,6 +1,15 @@
 <?php
+session_start();
 require_once '../backEnd/config-database.php';
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+
+
+// if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+//     header('Location: login.php');
+//     exit();
+// }
+
+// $role = $_SESSION['user_role'];
 ?>
 
 <!doctype html>
@@ -16,7 +25,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Inline CSS để tùy chỉnh giao diện -->
     <style>
         body {
             margin: 0;
@@ -170,22 +178,19 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             background: #e6e6e6;
         }
 
-        /* Style cho các ô chọn */
         input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #ff6a28; /* Màu sắc của checkbox */
+            accent-color: #ff6a28; 
             border-radius: 4px;
         }
 
-        /* Hiệu ứng hover cho ô chọn */
         input[type="checkbox"]:hover {
             transform: scale(1.1);
             transition: transform 0.2s ease;
         }
 
-        /* Hiệu ứng hover cho các liên kết trong bảng */
         .action-buttons a {
             color: #ff6a28;
             margin-right: 10px;
@@ -196,7 +201,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             text-decoration: underline;
         }
 
-        /* Responsive design cho màn hình nhỏ */
         @media (max-width: 768px) {
             .sidebar {
                 width: 180px;
@@ -215,7 +219,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             }
         }
 
-        /* Responsive cho các màn hình rất nhỏ */
         @media (max-width: 480px) {
             .sidebar {
                 display: none;
@@ -266,7 +269,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             box-shadow: 0 0 5px rgba(255, 106, 40, 0.3);
         }
 
-        /* CSS cho form thêm sản phẩm */
         .add-product-form {
             display: none;
             background: #fff;
@@ -367,29 +369,15 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         <h2><a href="admin.php">Admin</a></h2>
         <ul>
             <li>
-                <a href="?page=staff" class="menu-toggle">Quản lý nhân viên</a>
+                <a href="?page=users" class="menu-toggle">Quản lý người dùng</a>
                 <ul>
-                    <li><a href="?page=staff">Danh sách nhân viên</a></li>
-                    <li><a href="?page=staff_accounts">Tài khoản nhân viên</a></li>
-                    <li><a href="?page=staff_activity">Lịch sử hoạt động</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="?page=customers" class="menu-toggle">Quản lý khách hàng</a>
-                <ul>
-                    <li><a href="?page=customers">Danh sách khách hàng</a></li>
-                    <li><a href="?page=customer_orders">Lịch sử mua hàng</a></li>
-                    <li><a href="?page=customer_types">Phân loại khách hàng</a></li>
+                    <li><a href="?page=users">Danh sách người dùng</a></li>
                 </ul>
             </li>
             <li>
                 <a href="?page=products" class="menu-toggle">Quản lý hàng</a>
                 <ul>
                     <li><a href="?page=products">Danh sách sản phẩm</a></li>
-                    <li><a href="?page=inventory_receipts">Nhập hàng</a></li>
-                    <li><a href="?page=price_updates">Cập nhật giá</a></li>
-                    <li><a href="?page=inventory">Quản lý kho</a></li>
-                    <li><a href="?page=suppliers">Nhà cung cấp</a></li>
                 </ul>
             </li>
             <li>
@@ -419,75 +407,128 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 <p>Chọn một mục từ menu bên trái để bắt đầu quản lý cửa hàng quần áo nam.</p>
             </div>
 
-        <?php elseif ($page == 'staff'): ?>
-            <h1>Danh sách nhân viên</h1>
-            <div class="table-container">
-                <!-- Thanh tìm kiếm -->
-                <div class="search-container">
-                    <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên...">
-                    <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên...">
+        <?php elseif ($page == 'users'): ?>
+        <h1>Danh sách người dùng</h1>
+
+        <!-- Nút thêm -->
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-success" onclick="toggleAddUserForm()">Thêm người dùng</button>
+        </div>
+
+        <!-- Form thêm người dùng -->
+        <div class="add-user-form" id="addUserForm" style="display: none;">
+            <h2>Thêm người dùng</h2>
+            <?php if (isset($_SESSION['user_error'])): ?>
+                <div class="alert alert-danger"><?= $_SESSION['user_error']; unset($_SESSION['user_error']); ?></div>
+            <?php endif; ?>
+            <?php if (isset($_SESSION['user_success'])): ?>
+                <div class="alert alert-success"><?= $_SESSION['user_success']; unset($_SESSION['user_success']); ?></div>
+            <?php endif; ?>
+            <form action="../backEnd/add-user.php" method="POST">
+                <div class="form-group">
+                    <label>Họ tên <span class="text-danger">*</span></label>
+                    <input type="text" name="name" required>
                 </div>
+                <div class="form-group">
+                    <label>Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Điện thoại</label>
+                    <input type="text" name="phone">
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <input type="text" name="address">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAddUserForm()">Huỷ</button>
+                </div>
+            </form>
+        </div>
 
-                <table id="staff-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Mã nhân viên</th>
-                            <th>Tên</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Địa chỉ</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $result = $conn->query("SELECT id, name, email, phone, address FROM users");
-                        if ($result) {
-                            while ($row = $result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['address']) . "</td>";
-                                echo "<td class='action-buttons'>";
-                                echo "<a href='edit_staff.php?id=" . $row['id'] . "' class='btn-edit'>Sửa</a>";
-                                echo "<a href='delete_staff.php?id=" . $row['id'] . "' class='btn-delete' onclick='return confirm(\"Xóa nhân viên này?\")'>Xóa</a>";
-                                echo "</td>";
-                                echo "</tr>";
-                            }
-                            $result->free();
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Script tìm kiếm -->
-            <script>
-                document.getElementById('search-name').addEventListener('input', filterTable);
-                document.getElementById('search-code').addEventListener('input', filterTable);
+        <!-- Danh sách -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Địa chỉ</th><th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $users = $conn->query("SELECT * FROM users");
+                while ($user = $users->fetch_assoc()):
+                ?>
+                <tr>
+                    <td><?= $user['id'] ?></td>
+                    <td><?= htmlspecialchars($user['name']) ?></td>
+                    <td><?= htmlspecialchars($user['email']) ?></td>
+                    <td><?= htmlspecialchars($user['phone']) ?></td>
+                    <td><?= htmlspecialchars($user['address']) ?></td>
+                    <td>
+                        <a href="#" onclick="openEditForm(<?= htmlspecialchars(json_encode($user)) ?>)">Sửa</a> |
+                        <a href="backEnd/user/delete-user.php?id=<?= $user['id'] ?>" onclick="return confirm('Xoá người dùng này?')">Xoá</a>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
 
-                function filterTable() {
-                    const nameInput = document.getElementById('search-name').value.toLowerCase();
-                    const codeInput = document.getElementById('search-code').value.toLowerCase();
-                    const table = document.getElementById('staff-table');
-                    const rows = table.getElementsByTagName('tr');
+        <!-- Form sửa -->
+        <div class="edit-user-form" id="editUserForm" style="display: none;">
+            <h2>Sửa người dùng</h2>
+            <form action="../backEnd/user/edit-user.php" method="POST">
+                <input type="hidden" name="id" id="edit_id">
+                <div class="form-group">
+                    <label>Họ tên</label>
+                    <input type="text" name="name" id="edit_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="edit_email" required>
+                </div>
+                <div class="form-group">
+                    <label>Điện thoại</label>
+                    <input type="text" name="phone" id="edit_phone">
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <input type="text" name="address" id="edit_address">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-warning">Cập nhật</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditUserForm()">Huỷ</button>
+                </div>
+            </form>
+        </div>
 
-                    for (let i = 1; i < rows.length; i++) {
-                        const nameCell = rows[i].getElementsByTagName('td')[2]; // Cột Tên
-                        const codeCell = rows[i].getElementsByTagName('td')[1]; // Cột Mã nhân viên
-                        const nameText = nameCell.textContent.toLowerCase();
-                        const codeText = codeCell.textContent.toLowerCase();
+        <!-- Script -->
+        <script>
+        function toggleAddUserForm() {
+            document.getElementById('addUserForm').style.display =
+                document.getElementById('addUserForm').style.display === 'none' ? 'block' : 'none';
+        }
 
-                        if (nameText.includes(nameInput) && codeText.includes(codeInput)) {
-                            rows[i].style.display = '';
-                        } else {
-                            rows[i].style.display = 'none';
-                        }
-                    }
-                }
-            </script>
+        function toggleEditUserForm() {
+            document.getElementById('editUserForm').style.display =
+                document.getElementById('editUserForm').style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openEditForm(user) {
+            toggleEditUserForm();
+            document.getElementById('edit_id').value = user.id;
+            document.getElementById('edit_name').value = user.name;
+            document.getElementById('edit_email').value = user.email;
+            document.getElementById('edit_phone').value = user.phone;
+            document.getElementById('edit_address').value = user.address;
+        }
+        </script>
+
 
         <?php elseif ($page == 'staff_accounts'): ?>
             <h1>Tài khoản nhân viên</h1>
@@ -519,8 +560,8 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                                 echo "<td>" . htmlspecialchars($row['role_name'] ?: 'Chưa phân vai trò') . "</td>";
                                 echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
                                 echo "<td class='action-buttons'>";
-                                echo "<a href='edit_staff_account.php?id=" . $row['id'] . "'>Sửa</a>";
-                                echo "<a href='delete_staff_account.php?id=" . $row['id'] . "' onclick='return confirm(\"Xóa tài khoản này?\")'>Xóa</a>";
+                                echo '<a href="../backEnd/user/edit-user.php?id=' . $row['id'] . '">Sửa</a>';
+                                echo '<a href="../backEnd/user/delete-user.php?id=' . $row['id'] . '" onclick="return confirm(\'Bạn có chắc chắn muốn xoá không?\')">Xoá</a>';
                                 echo "</td>";
                                 echo "</tr>";
                             }
@@ -564,7 +605,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         ?>
                     </tbody>
                 </table>
-                <p>Lưu ý: Hiện chỉ hiển thị hoạt động nhập hàng. Cần thêm bảng activity_logs để theo dõi đầy đủ.</p>
+                <!-- <p>Lưu ý: Hiện chỉ hiển thị hoạt động nhập hàng. Cần thêm bảng activity_logs để theo dõi đầy đủ.</p> -->
             </div>
 
         <?php elseif ($page == 'customers'): ?>
@@ -693,7 +734,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     <button class="btn btn-success" onclick="toggleAddProductForm()">Thêm sản phẩm</button>
                 </div>
 
-                <!-- Form thêm sản phẩm -->
                 <div class="add-product-form" id="addProductForm">
                     <h2>Thêm sản phẩm mới</h2>
                     <?php if (isset($_SESSION['product_error'])): ?>
@@ -1021,7 +1061,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     <thead>
                         <tr>
                             <th>Tên nhân viên</th>
-                            <th>Mã nhân viên</th>
+                            <th>email</th>
                             <?php
                             $permissions = [
                                 1 => ['name' => 'Quyền thêm hàng', 'description' => 'Cho phép thêm sản phẩm vào kho'],
@@ -1117,7 +1157,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
     <script src="../assets/js/plugins.js"></script>
     <script src="../assets/js/main.js"></script>
-    <!-- Inline JS để xử lý click mở/đóng menu -->
     <script>
         document.querySelectorAll('.menu-toggle').forEach(item => {
             item.addEventListener('click', event => {
@@ -1133,6 +1172,30 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             });
         });
     </script>
+    <div id="toast" style="display:none; position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; z-index: 9999;"></div>
+
+<script>
+    const msg = "<?= $msg ?>";
+    if (msg) {
+        let text = "";
+        switch (msg) {
+            case "added": text = "Thêm người dùng thành công"; break;
+            case "updated": text = "Cập nhật thành công"; break;
+            case "deleted": text = "Xóa thành công"; break;
+            case "empty": text = "Vui lòng nhập đầy đủ thông tin"; break;
+            case "notfound": text = "Không tìm thấy người dùng"; break;
+        }
+
+        const toast = document.getElementById("toast");
+        toast.innerText = text;
+        toast.style.display = "block";
+
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 3000);
+    }
+</script>
+
     <script>
         function savePermissions() {
             const permissions = [];
