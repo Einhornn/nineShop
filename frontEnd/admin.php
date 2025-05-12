@@ -1,25 +1,5 @@
 <?php
-// session_start();
-// if (!isset($_SESSION['admin_id'])) {
-//     header('Location: login.php');
-//     exit;
-// }
-
-// Kết nối cơ sở dữ liệu
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "clothingshop (1)";
-
-try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $conn->exec("SET NAMES 'utf8mb4'");
-} catch (PDOException $e) {
-    die("Kết nối thất bại: " . $e->getMessage());
-}
-
-// Xử lý trang hiển thị
+require_once '../backEnd/config-database.php';
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 ?>
 
@@ -285,6 +265,82 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             border-color: #ff6a28;
             box-shadow: 0 0 5px rgba(255, 106, 40, 0.3);
         }
+
+        /* CSS cho form thêm sản phẩm */
+        .add-product-form {
+            display: none;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .add-product-form.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-group select[multiple] {
+            height: 100px;
+        }
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            position: relative;
+            opacity: 0;
+            transform: translateY(-10px);
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+                display: none;
+            }
+        }
+        .alert.hide {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
     </style>
 </head>
 
@@ -308,7 +364,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <h2><a href = "admin.php">Admin</a></h2>
+        <h2><a href="admin.php">Admin</a></h2>
         <ul>
             <li>
                 <a href="?page=staff" class="menu-toggle">Quản lý nhân viên</a>
@@ -349,8 +405,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 <a href="?page=roles" class="menu-toggle">Quản lý quyền</a>
                 <ul>
                     <li><a href="?page=roles">Phân quyền</a></li>
-                    <!-- <li><a href="?page=permissions">Quyền truy cập</a></li>
-                    <li><a href="?page=role_logs">Nhật ký quyền</a></li> -->
                 </ul>
             </li>
         </ul>
@@ -359,79 +413,82 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     <!-- Main Content -->
     <div class="main-content">
         <?php if ($page == 'dashboard'): ?>
-            <!-- <h1>Bảng điều khiển Admin</h1>
+            <h1>Bảng điều khiển Admin</h1>
             <div class="table-container">
                 <h2>Tổng quan</h2>
                 <p>Chọn một mục từ menu bên trái để bắt đầu quản lý cửa hàng quần áo nam.</p>
-            </div>  -->
+            </div>
 
-            <?php elseif ($page == 'staff'): ?>
-    <h1>Danh sách nhân viên</h1>
-    <div class="table-container">
-        <!-- Thanh tìm kiếm -->
-        <div class="search-container">
-            <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên...">
-            <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên...">
-        </div>
+        <?php elseif ($page == 'staff'): ?>
+            <h1>Danh sách nhân viên</h1>
+            <div class="table-container">
+                <!-- Thanh tìm kiếm -->
+                <div class="search-container">
+                    <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên...">
+                    <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên...">
+                </div>
 
-        <table id="staff-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Mã nhân viên</th>
-                    <th>Tên</th>
-                    <th>Email</th>
-                    <th>Số điện thoại</th>
-                    <th>Địa chỉ</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $stmt = $conn->query("SELECT id, employee_code, name, email, phone, address FROM employees");
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['employee_code']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['address']) . "</td>";
-                    echo "<td class='action-buttons'>";
-                    echo "<a href='edit_staff.php?id=" . $row['id'] . "' class='btn-edit'>Sửa</a>";
-                    echo "<a href='delete_staff.php?id=" . $row['id'] . "' class='btn-delete' onclick='return confirm(\"Xóa nhân viên này?\")'>Xóa</a>";
-                    echo "</td>";
-                    echo "</tr>";
+                <table id="staff-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã nhân viên</th>
+                            <th>Tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $result = $conn->query("SELECT id, name, email, phone, address FROM users");
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['address']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='edit_staff.php?id=" . $row['id'] . "' class='btn-edit'>Sửa</a>";
+                                echo "<a href='delete_staff.php?id=" . $row['id'] . "' class='btn-delete' onclick='return confirm(\"Xóa nhân viên này?\")'>Xóa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Script tìm kiếm -->
+            <script>
+                document.getElementById('search-name').addEventListener('input', filterTable);
+                document.getElementById('search-code').addEventListener('input', filterTable);
+
+                function filterTable() {
+                    const nameInput = document.getElementById('search-name').value.toLowerCase();
+                    const codeInput = document.getElementById('search-code').value.toLowerCase();
+                    const table = document.getElementById('staff-table');
+                    const rows = table.getElementsByTagName('tr');
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const nameCell = rows[i].getElementsByTagName('td')[2]; // Cột Tên
+                        const codeCell = rows[i].getElementsByTagName('td')[1]; // Cột Mã nhân viên
+                        const nameText = nameCell.textContent.toLowerCase();
+                        const codeText = codeCell.textContent.toLowerCase();
+
+                        if (nameText.includes(nameInput) && codeText.includes(codeInput)) {
+                            rows[i].style.display = '';
+                        } else {
+                            rows[i].style.display = 'none';
+                        }
+                    }
                 }
-                ?>
-            </tbody>
-        </table>
-    </div>
-           <!-- Script tìm kiếm -->
-    <script>
-        document.getElementById('search-name').addEventListener('input', filterTable);
-        document.getElementById('search-code').addEventListener('input', filterTable);
+            </script>
 
-        function filterTable() {
-            const nameInput = document.getElementById('search-name').value.toLowerCase();
-            const codeInput = document.getElementById('search-code').value.toLowerCase();
-            const table = document.getElementById('staff-table');
-            const rows = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < rows.length; i++) {
-                const nameCell = rows[i].getElementsByTagName('td')[2]; // Cột Tên
-                const codeCell = rows[i].getElementsByTagName('td')[1]; // Cột Mã nhân viên
-                const nameText = nameCell.textContent.toLowerCase();
-                const codeText = codeCell.textContent.toLowerCase();
-
-                if (nameText.includes(nameInput) && codeText.includes(codeInput)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
-        }
-    </script>
         <?php elseif ($page == 'staff_accounts'): ?>
             <h1>Tài khoản nhân viên</h1>
             <div class="table-container">
@@ -448,23 +505,26 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT u.id, u.name, u.email, u.created_at, r.name AS role_name
+                        $result = $conn->query("SELECT u.id, u.name, u.email, u.created_at, r.name AS role_name
                                               FROM users u
                                               LEFT JOIN user_roles ur ON u.id = ur.user_id
                                               LEFT JOIN roles r ON ur.role_id = r.id
                                               WHERE u.id IN (SELECT user_id FROM user_roles)");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['role_name'] ?: 'Chưa phân vai trò') . "</td>";
-                            echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='edit_staff_account.php?id=" . $row['id'] . "'>Sửa</a>";
-                            echo "<a href='delete_staff_account.php?id=" . $row['id'] . "' onclick='return confirm(\"Xóa tài khoản này?\")'>Xóa</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['role_name'] ?: 'Chưa phân vai trò') . "</td>";
+                                echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='edit_staff_account.php?id=" . $row['id'] . "'>Sửa</a>";
+                                echo "<a href='delete_staff_account.php?id=" . $row['id'] . "' onclick='return confirm(\"Xóa tài khoản này?\")'>Xóa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -486,18 +546,20 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        // Tạm thời dùng inventory_receipts để hiển thị hoạt động nhập hàng
-                        $stmt = $conn->query("SELECT ir.id, u.name AS user_name, ir.received_at, ir.notes
+                        $result = $conn->query("SELECT ir.id, u.name AS user_name, ir.received_at, ir.notes
                                               FROM inventory_receipts ir
                                               JOIN users u ON ir.user_id = u.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
-                            echo "<td>Nhập hàng</td>";
-                            echo "<td>" . htmlspecialchars($row['received_at']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['notes'] ?: 'Không có ghi chú') . "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
+                                echo "<td>Nhập hàng</td>";
+                                echo "<td>" . htmlspecialchars($row['received_at']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['notes'] ?: 'Không có ghi chú') . "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -521,19 +583,22 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT id, name, email, phone, address FROM users");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['address']) . "</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='view_customer.php?id=" . $row['id'] . "'>Xem</a>";
-                            echo "<a href='edit_customer.php?id=" . $row['id'] . "'>Sửa</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        $result = $conn->query("SELECT id, name, email, phone, address FROM users");
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['address']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='view_customer.php?id=" . $row['id'] . "'>Xem</a>";
+                                echo "<a href='edit_customer.php?id=" . $row['id'] . "'>Sửa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -556,20 +621,23 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT o.id, u.name AS user_name, o.total_amount, o.status, o.created_at
+                        $result = $conn->query("SELECT o.id, u.name AS user_name, o.total_amount, o.status, o.created_at
                                               FROM orders o
                                               JOIN users u ON o.user_id = u.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
-                            echo "<td>" . number_format($row['total_amount'], 0, ',', '.') . " VNĐ</td>";
-                            echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='view_order.php?id=" . $row['id'] . "'>Xem chi tiết</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
+                                echo "<td>" . number_format($row['total_amount'], 0, ',', '.') . " VNĐ</td>";
+                                echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='view_order.php?id=" . $row['id'] . "'>Xem chi tiết</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -592,22 +660,25 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT u.id, u.name, u.email,
+                        $result = $conn->query("SELECT u.id, u.name, u.email,
                                               COUNT(o.id) AS order_count,
                                               SUM(o.total_amount) AS total_spent
                                               FROM users u
                                               LEFT JOIN orders o ON u.id = o.user_id
                                               GROUP BY u.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            $type = ($row['total_spent'] > 1000000) ? 'VIP' : 'Thường';
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['order_count']) . "</td>";
-                            echo "<td>" . number_format($row['total_spent'] ?: 0, 0, ',', '.') . " VNĐ</td>";
-                            echo "<td>" . $type . "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                $type = ($row['total_spent'] > 1000000) ? 'VIP' : 'Thường';
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['order_count']) . "</td>";
+                                echo "<td>" . number_format($row['total_spent'] ?: 0, 0, ',', '.') . " VNĐ</td>";
+                                echo "<td>" . $type . "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -617,6 +688,96 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         <?php elseif ($page == 'products'): ?>
             <h1>Danh sách sản phẩm</h1>
             <div class="table-container">
+                <!-- Nút thêm sản phẩm -->
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-success" onclick="toggleAddProductForm()">Thêm sản phẩm</button>
+                </div>
+
+                <!-- Form thêm sản phẩm -->
+                <div class="add-product-form" id="addProductForm">
+                    <h2>Thêm sản phẩm mới</h2>
+                    <?php if (isset($_SESSION['product_error'])): ?>
+                        <div class="alert alert-danger">
+                            <?php echo htmlspecialchars($_SESSION['product_error']); unset($_SESSION['product_error']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['product_success'])): ?>
+                        <div class="alert alert-success">
+                            <?php echo htmlspecialchars($_SESSION['product_success']); unset($_SESSION['product_success']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <form action="../backEnd/add-product.php" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="name">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subcategory">Danh mục con <span class="text-danger">*</span></label>
+                            <select name="subcategory" id="subcategory" required>
+                                <option value="">Chọn danh mục</option>
+                                <?php
+                                $result = $conn->query("SELECT id, name FROM subcategories");
+                                if ($result) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['name']) . "</option>";
+                                    }
+                                    $result->free();
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Mô tả</label>
+                            <textarea name="description" id="description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" name="price" id="price" step="1000" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="image">Hình ảnh <span class="text-danger">*</span></label>
+                            <input type="file" name="image" id="image" accept=".jpg,.png" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sizes">Kích thước <span class="text-danger">*</span></label>
+                            <select name="sizes[]" id="sizes" multiple required>
+                                <?php
+                                $result = $conn->query("SELECT id, size FROM size");
+                                if ($result) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['size']) . "</option>";
+                                    }
+                                    $result->free();
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="colors">Màu sắc <span class="text-danger">*</span></label>
+                            <select name="colors[]" id="colors" multiple required>
+                                <?php
+                                $result = $conn->query("SELECT id, name FROM color");
+                                if ($result) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['name']) . "</option>";
+                                    }
+                                    $result->free();
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" name="quantity" id="quantity" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleAddProductForm()">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Danh sách sản phẩm -->
                 <table>
                     <thead>
                         <tr>
@@ -631,27 +792,47 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT p.id, p.name, p.price, p.stock, p.image_url, s.name AS subcategory
+                        $result = $conn->query("SELECT psc.id, p.name, s.name AS subcategory, p.price, psc.quantity, p.image_url_1 
                                               FROM products p
-                                              JOIN subcategories s ON p.subcategories_id = s.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['subcategory']) . "</td>";
-                            echo "<td>" . number_format($row['price'], 0, ',', '.') . " VNĐ</td>";
-                            echo "<td>" . htmlspecialchars($row['stock']) . "</td>";
-                            echo "<td><img src='" . htmlspecialchars($row['image_url']) . "' alt='Product' style='max-width: 50px;'></td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='edit_product.php?id=" . $row['id'] . "'>Sửa</a>";
-                            echo "<a href='delete_product.php?id=" . $row['id'] . "' onclick='return confirm(\"Xóa sản phẩm này?\")'>Xóa</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                                              JOIN subcategories s ON p.subcategories_id = s.id
+                                              JOIN products_size_color psc ON p.id = psc.id_product");
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['subcategory']) . "</td>";
+                                echo "<td>" . number_format($row['price'], 0, ',', '.') . " VNĐ</td>";
+                                echo "<td>" . htmlspecialchars($row['quantity']) . "</td>";
+                                echo "<td><img src='" . htmlspecialchars($row['image_url_1']) . "' alt='Product' style='max-width: 50px;'></td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='../backEnd/product/edit-product.php?id=" . $row['id'] . "'>Sửa</a>";
+                                echo "<a href='../backEnd/product/delete-product.php?id=" . $row['id'] . "' onclick='return confirm(\"Xóa sản phẩm này?\")'>Xóa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
+            <!-- Script hiển thị/ẩn form -->
+            <script>
+                function toggleAddProductForm() {
+                    const form = document.getElementById('addProductForm');
+                    form.classList.toggle('active');
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        setTimeout(() => {
+                            alert.classList.add('hide');
+                        }, 3000); // Ẩn sau 3 giây
+                    });
+                });
+            </script>
 
         <?php elseif ($page == 'inventory_receipts'): ?>
             <h1>Nhập hàng</h1>
@@ -669,21 +850,24 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT ir.id, u.name AS user_name, ir.received_at, ir.status, ir.notes
+                        $result = $conn->query("SELECT ir.id, u.name AS user_name, ir.received_at, ir.status, ir.notes
                                               FROM inventory_receipts ir
                                               JOIN users u ON ir.user_id = u.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['received_at']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['notes']) . "</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='view_receipt.php?id=" . $row['id'] . "'>Xem</a>";
-                            echo "<a href='edit_receipt.php?id=" . $row['id'] . "'>Sửa</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['received_at']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['notes']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='view_receipt.php?id=" . $row['id'] . "'>Xem</a>";
+                                echo "<a href='edit_receipt.php?id=" . $row['id'] . "'>Sửa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -705,17 +889,20 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT o.id, u.name AS user_name, o.total_amount, o.status, o.created_at
+                        $result = $conn->query("SELECT o.id, u.name AS user_name, o.total_amount, o.status, o.created_at
                                               FROM orders o
                                               JOIN users u ON o.user_id = u.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
-                            echo "<td>" . number_format($row['total_amount'], 0, ',', '.') . " VNĐ</td>";
-                            echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['user_name']) . "</td>";
+                                echo "<td>" . number_format($row['total_amount'], 0, ',', '.') . " VNĐ</td>";
+                                echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -738,23 +925,27 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT p.id, p.name, s.name AS subcategory,
-                                              SUM(oi.quantity) AS total_sold, p.stock
+                        $result = $conn->query("SELECT p.id, p.name, s.name AS subcategory,
+                                              SUM(oi.quantity) AS total_sold, psc.quantity
                                               FROM products p
                                               JOIN subcategories s ON p.subcategories_id = s.id
                                               LEFT JOIN order_items oi ON p.id = oi.product_id
+                                              JOIN products_size_color psc ON p.id = psc.id_product
                                               GROUP BY p.id");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['subcategory']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['total_sold'] ?: 0) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['stock']) . "</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='view_product.php?id=" . $row['id'] . "'>Xem</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['subcategory']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['total_sold'] ?: 0) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['quantity']) . "</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='view_product.php?id=" . $row['id'] . "'>Xem</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
@@ -777,141 +968,146 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     </thead>
                     <tbody>
                         <?php
-                        $stmt = $conn->query("SELECT u.id, u.name, u.email,
+                        $result = $conn->query("SELECT u.id, u.name, u.email,
                                               COUNT(o.id) AS order_count,
                                               SUM(o.total_amount) AS total_spent
                                               FROM users u
                                               LEFT JOIN orders o ON u.id = o.user_id
                                               GROUP BY u.id
                                               ORDER BY total_spent DESC");
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['order_count']) . "</td>";
-                            echo "<td>" . number_format($row['total_spent'] ?: 0, 0, ',', '.') . " VNĐ</td>";
-                            echo "<td class='action-buttons'>";
-                            echo "<a href='view_customer.php?id=" . $row['id'] . "'>Xem</a>";
-                            echo "</td>";
-                            echo "</tr>";
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['order_count']) . "</td>";
+                                echo "<td>" . number_format($row['total_spent'] ?: 0, 0, ',', '.') . " VNĐ</td>";
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='view_customer.php?id=" . $row['id'] . "'>Xem</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
-            <?php elseif ($page == 'roles'): ?>
-        <h1>Phân quyền vai trò</h1>
-        <div class="table-container">
-        <form id="permissionForm">
-        <!-- Ô tìm kiếm -->
-        <div class="search-container" style="margin-bottom: 20px;">
-            <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên..." style="padding: 8px; width: 200px; margin-right: 10px;">
-            <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên..." style="padding: 8px; width: 200px;">
-        </div>
-          <!-- Container bọc nút -->
-        <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
-            <div id="saveAlert" class="alert alert-success py-1 px-3 mb-0" style="display:none;">
-                Đã lưu phân quyền
+
+        <?php elseif ($page == 'roles'): ?>
+            <h1>Phân quyền vai trò</h1>
+            <div class="table-container">
+                <form id="permissionForm">
+                    <!-- Ô tìm kiếm -->
+                    <div class="search-container" style="margin-bottom: 20px;">
+                        <input type="text" id="search-name" placeholder="Tìm theo tên nhân viên..." style="padding: 8px; width: 200px; margin-right: 10px;">
+                        <input type="text" id="search-code" placeholder="Tìm theo mã nhân viên..." style="padding: 8px; width: 200px;">
+                    </div>
+                    <!-- Container bọc nút -->
+                    <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
+                        <div id="saveAlert" class="alert alert-success py-1 px-3 mb-0" style="display:none;">
+                            Đã lưu phân quyền
+                        </div>
+                        <button type="button" onclick="savePermissions()" class="btn btn-success">
+                            Lưu phân quyền
+                        </button>
+                        <button type="button" onclick="confirmReset()" class="btn btn-secondary">
+                            Đặt lại
+                        </button>
+                    </div>
+                </form>
+                <table id="roles-table">
+                    <thead>
+                        <tr>
+                            <th>Tên nhân viên</th>
+                            <th>Mã nhân viên</th>
+                            <?php
+                            $permissions = [
+                                1 => ['name' => 'Quyền thêm hàng', 'description' => 'Cho phép thêm sản phẩm vào kho'],
+                                2 => ['name' => 'Quyền xem báo cáo', 'description' => 'Xem báo cáo doanh thu và thống kê'],
+                                3 => ['name' => 'Quyền sửa sản phẩm', 'description' => 'Sửa thông tin sản phẩm trong kho'],
+                                4 => ['name' => 'Quyền xóa đơn hàng', 'description' => 'Xóa đơn hàng của khách']
+                            ];
+                            foreach ($permissions as $perm_id => $perm) {
+                                echo "<th class='permission-header' data-description='" . htmlspecialchars($perm['description']) . "'>" . htmlspecialchars($perm['name']) . "</th>";
+                            }
+                            ?>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $result = $conn->query("
+                            SELECT u.id, u.name AS employee_name, u.email AS employee_code, r.id AS role_id, r.name AS role_name
+                            FROM users u
+                            LEFT JOIN user_roles ur ON u.id = ur.user_id
+                            LEFT JOIN roles r ON ur.role_id = r.id
+                            WHERE u.id IN (SELECT user_id FROM user_roles)
+                        ");
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['employee_name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['employee_code']) . "</td>";
+                                $perm_result = $conn->query("SELECT permission_id FROM role_permissions WHERE role_id = " . (int)$row['role_id']);
+                                $grantedPermissions = [];
+                                if ($perm_result) {
+                                    while ($perm_row = $perm_result->fetch_assoc()) {
+                                        $grantedPermissions[] = $perm_row['permission_id'];
+                                    }
+                                    $perm_result->free();
+                                }
+
+                                for ($i = 1; $i <= 4; $i++) {
+                                    $checked = in_array($i, $grantedPermissions) ? 'checked' : '';
+                                    echo "<td><input type='checkbox' class='role-permission' data-employee-id='" . $row['id'] . "' data-permission='" . $i . "' $checked></td>";
+                                }
+
+                                echo "<td class='action-buttons'>";
+                                echo "<a href='edit_employee_role.php?id=" . $row['id'] . "' class='btn-edit'>Sửa</a>";
+                                echo "<a href='delete_employee_role.php?id=" . $row['id'] . "' class='btn-delete' onclick='return confirm(\"Xóa vai trò của nhân viên này?\")'>Xóa</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                            $result->free();
+                        }
+                        ?>
+                    </tbody>
+                </table>
             </div>
-            <button type="button" onclick="savePermissions()" class="btn btn-success">
-                Lưu phân quyền
-            </button>
-            <button type="button" onclick="confirmReset()" class="btn btn-secondary">
-                Đặt lại
-            </button>
-        </div>
-        </form>
-        </div>
-        <table id="roles-table">
+            <!-- Script xử lý tìm kiếm -->
+            <script>
+                document.getElementById('search-name').addEventListener('input', function() {
+                    filterTable();
+                });
 
-            <thead>
-                <tr>
-                    <th>Tên nhân viên</th>
-                    <th>Mã nhân viên</th>
-                    <?php
-                    // Giả lập danh sách quyền (có thể lấy từ cơ sở dữ liệu)
-                    $permissions = [
-                        1 => ['name' => 'Quyền thêm hàng', 'description' => 'Cho phép thêm sản phẩm vào kho'],
-                        2 => ['name' => 'Quyền xem báo cáo', 'description' => 'Xem báo cáo doanh thu và thống kê'],
-                        3 => ['name' => 'Quyền sửa sản phẩm', 'description' => 'Sửa thông tin sản phẩm trong kho'],
-                        4 => ['name' => 'Quyền xóa đơn hàng', 'description' => 'Xóa đơn hàng của khách']
-                    ];
-                    foreach ($permissions as $perm_id => $perm) {
-                        echo "<th class='permission-header' data-description='" . htmlspecialchars($perm['description']) . "'>" . htmlspecialchars($perm['name']) . "</th>";
+                document.getElementById('search-code').addEventListener('input', function() {
+                    filterTable();
+                });
+
+                function filterTable() {
+                    const nameInput = document.getElementById('search-name').value.toLowerCase();
+                    const codeInput = document.getElementById('search-code').value.toLowerCase();
+                    const table = document.getElementById('roles-table');
+                    const rows = table.getElementsByTagName('tr');
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const nameCell = rows[i].getElementsByTagName('td')[0];
+                        const codeCell = rows[i].getElementsByTagName('td')[1];
+                        const nameText = nameCell.textContent.toLowerCase();
+                        const codeText = codeCell.textContent.toLowerCase();
+
+                        if (nameText.includes(nameInput) && codeText.includes(codeInput)) {
+                            rows[i].style.display = '';
+                        } else {
+                            rows[i].style.display = 'none';
+                        }
                     }
-                    ?>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $stmt = $conn->query("
-                    SELECT e.id, e.name AS employee_name, e.employee_code, r.id AS role_id, r.name AS role_name
-                    FROM employees e
-                    LEFT JOIN user_roles ur ON e.id = ur.user_id
-                    LEFT JOIN roles r ON ur.role_id = r.id
-                ");
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($row['employee_name']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['employee_code']) . "</td>";
-                    // Tạo ô chọn cho mỗi quyền
-                    // Lấy danh sách permission đã được gán cho nhân viên này
-                    $permStmt = $conn->prepare("SELECT permission_id FROM role_permissions WHERE role_id = ?");
-                    $permStmt->execute([$row['role_id']]);
-                    $grantedPermissions = $permStmt->fetchAll(PDO::FETCH_COLUMN);
-
-                    for ($i = 1; $i <= 4; $i++) {
-                        $checked = in_array($i, $grantedPermissions) ? 'checked' : '';
-                        echo "<td><input type='checkbox' class='role-permission' data-employee-id='" . $row['id'] . "' data-permission='" . $i . "' $checked></td>";
-                    }
-
-                    echo "<td class='action-buttons'>";
-                    echo "<a href='edit_employee_role.php?id=" . $row['id'] . "' class='btn-edit'>Sửa</a>";
-                    echo "<a href='delete_employee_role.php?id=" . $row['id'] . "' class='btn-delete' onclick='return confirm(\"Xóa vai trò của nhân viên này?\")'>Xóa</a>";
-                    echo "</td>";
-                    echo "</tr>";
                 }
-                ?>
-            </tbody>
-        </table>
+            </script>
 
-    </div>
-
-    <!-- Script xử lý tìm kiếm -->
-    <script>
-        document.getElementById('search-name').addEventListener('input', function() {
-            filterTable();
-        });
-
-        document.getElementById('search-code').addEventListener('input', function() {
-            filterTable();
-        });
-
-        function filterTable() {
-            const nameInput = document.getElementById('search-name').value.toLowerCase();
-            const codeInput = document.getElementById('search-code').value.toLowerCase();
-            const table = document.getElementById('roles-table');
-            const rows = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < rows.length; i++) { // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-                const nameCell = rows[i].getElementsByTagName('td')[0];
-                const codeCell = rows[i].getElementsByTagName('td')[1];
-                const nameText = nameCell.textContent.toLowerCase();
-                const codeText = codeCell.textContent.toLowerCase();
-
-                if (nameText.includes(nameInput) && codeText.includes(codeInput)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
-        }
-    </script>
-
-<?php else: ?>
-
+        <?php else: ?>
             <h1>Trang không tồn tại</h1>
             <div class="table-container">
                 <p>Chọn một mục từ menu bên trái để tiếp tục.</p>
@@ -938,109 +1134,54 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         });
     </script>
     <script>
-function confirmReset() {
-    if (confirm('Bạn có chắc muốn đặt lại phân quyền không?')) {
-        location.reload()
-    }
-}
-</script>
-<script>
-// function savePermissions() {
-//     const formData = new FormData(document.getElementById("permissionForm"));
+        function savePermissions() {
+            const permissions = [];
+            
+            document.querySelectorAll('.role-permission').forEach(checkbox => {
+                const employeeId = checkbox.getAttribute('data-employee-id');
+                const permissionId = checkbox.getAttribute('data-permission');
+                const checked = checkbox.checked ? 1 : 0;
+                
+                permissions.push({
+                    employee_id: employeeId,
+                    permission_id: permissionId,
+                    checked: checked
+                });
+            });
 
-//     fetch("update_permission.php", {
-//         method: "POST",
-//         body: formData
-//     })
-//     .then(res => res.text())
-//     .then(data => {
-//         if (data.trim() === "OK") {
-//             document.getElementById("saveAlert").style.display = "inline-block"
-//             setTimeout(() => {
-//                 document.getElementById("saveAlert").style.display = "none"
-//                 location.reload()
-//             }, 1500)
-//         } else {
-//             alert("Có lỗi xảy ra: " + data)
-//         }
-//     })
-//     .catch(err => {
-//         console.error(err);
-//         alert("Đã xảy ra lỗi khi lưu phân quyền.")
-//     });
-// }
-function savePermissions() {
-    const permissions = [];
-    
-    // Lấy tất cả các checkbox trong bảng
-    document.querySelectorAll('.role-permission').forEach(checkbox => {
-        const employeeId = checkbox.getAttribute('data-employee-id');
-        const permissionId = checkbox.getAttribute('data-permission');
-        const checked = checkbox.checked ? 1 : 0;
-        
-        permissions.push({
-            employee_id: employeeId,
-            permission_id: permissionId,
-            checked: checked
-        });
-    });
-
-    // Gửi dữ liệu lên server
-    fetch("update_permission.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(permissions)
-    })
-    .then(res => res.text())
-    .then(data => {
-        if (data.trim() === "OK") {
-            document.getElementById("saveAlert").style.display = "inline-block";
-            setTimeout(() => {
-                document.getElementById("saveAlert").style.display = "none";
-                location.reload();
-            }, 1500);
-        } else {
-            alert("Có lỗi xảy ra: " + data);
+            fetch("update_permission.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(permissions)
+            })
+            .then(res => res.text())
+            .then(data => {
+                if (data.trim() === "OK") {
+                    document.getElementById("saveAlert").style.display = "inline-block";
+                    setTimeout(() => {
+                        document.getElementById("saveAlert").style.display = "none";
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert("Có lỗi xảy ra: " + data);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi khi lưu phân quyền.");
+            });
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Đã xảy ra lỗi khi lưu phân quyền.");
-    });
-}
-function confirmReset() {
-    if (confirm("Bạn có chắc muốn đặt lại phân quyền không?")) {
-        location.reload();
-    }
-}
-</script>
-<script>
-function savePermissions() {
-    const formData = new FormData(document.getElementById("permissionForm"));
 
-    fetch("update_permission.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.text())
-    .then(data => {
-        alert("Lưu phân quyền thành công!")
-        location.reload();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Đã xảy ra lỗi khi lưu phân quyền.");
-    });
-}
-
-function confirmReset() {
-    if (confirm("Bạn có chắc muốn đặt lại phân quyền không?")) {
-        location.reload();
-    }
-}
-</script>
-
+        function confirmReset() {
+            if (confirm("Bạn có chắc muốn đặt lại phân quyền không?")) {
+                location.reload();
+            }
+        }
+    </script>
 </body>
 </html>
+<?php
+$conn->close();
+?>

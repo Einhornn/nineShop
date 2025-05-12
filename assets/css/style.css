@@ -549,7 +549,7 @@ input:-ms-input-placeholder, textarea:-ms-input-placeholder {
   margin-bottom: 10px;
   border-bottom: 1px solid #ddd;
 }
-.offcanvas_main_menu li a:hover {
+.offcanvas_main_menu li a:hover{
   color: #ff6a28;
 }
 .offcanvas_main_menu li ul.sub-menu {

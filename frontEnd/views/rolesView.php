@@ -6,7 +6,7 @@ $employees = $controller->getAllEmployees();
 $roles = $controller->getAllRoles();
 ?>
 
-<table border="1">
+<table>
     <tr>
         <th>Nhân viên</th>
         <?php foreach ($roles as $role): ?>
