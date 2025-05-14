@@ -409,12 +409,39 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
         <?php elseif ($page == 'users'): ?>
         <h1>Danh sách người dùng</h1>
-
+        <?php if (isset($_GET['msg'])): ?>
+        <div class="alert 
+            <?php 
+                echo in_array($_GET['msg'], ['deleted', 'updated']) ? 'alert-success' : 
+                    (in_array($_GET['msg'], ['notfound', 'error', 'empty']) ? 'alert-danger' : 'alert-info'); 
+            ?>">
+            <?php 
+                switch ($_GET['msg']) {
+                    case 'deleted':
+                        echo 'Đã xoá người dùng thành công!';
+                        break;
+                    case 'updated':
+                        echo 'Cập nhật người dùng thành công!';
+                        break;
+                    case 'notfound':
+                        echo 'Không tìm thấy người dùng.';
+                        break;
+                    case 'error':
+                        echo 'Có lỗi xảy ra.';
+                        break;
+                    case 'empty':
+                        echo 'Vui lòng điền đầy đủ thông tin!';
+                        break;
+                    default:
+                        echo 'Thông báo không xác định.';
+                }
+            ?>
+        </div>
+    <?php endif; ?>
         <!-- Nút thêm -->
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-success" onclick="toggleAddUserForm()">Thêm người dùng</button>
         </div>
-
         <!-- Form thêm người dùng -->
         <div class="add-user-form" id="addUserForm" style="display: none;">
             <h2>Thêm người dùng</h2>
@@ -471,14 +498,46 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                     <td><?= htmlspecialchars($user['phone']) ?></td>
                     <td><?= htmlspecialchars($user['address']) ?></td>
                     <td>
-                        <a href="#" onclick="openEditForm(<?= htmlspecialchars(json_encode($user)) ?>)">Sửa</a> |
-                        <a href="backEnd/user/delete-user.php?id=<?= $user['id'] ?>" onclick="return confirm('Xoá người dùng này?')">Xoá</a>
+                        <!-- <a href="../backEnd/user/edit-user.php?id=<?= $user['id'] ?>" class="btn btn-primary btn-sm">Sửa</a>| -->
+                        <!-- Nút sửa -->
+                            <button 
+                                class="btn btn-primary btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal<?= $user['id'] ?>">
+                                Sửa
+                            </button>
+
+                            <!-- Modal sửa -->
+                            <div class="modal fade" id="editModal<?= $user['id'] ?>" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form method="post" action="../backEnd/user/edit-user.php">
+                                <input type="hidden" name="id" value="<?= $user['id'] ?>">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h5 class="modal-title">Sửa người dùng</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                    <input type="text" name="name" class="form-control mb-2" value="<?= $user['name'] ?>" placeholder="Tên">
+                                    <input type="email" name="email" class="form-control mb-2" value="<?= $user['email'] ?>" placeholder="Email">
+                                    <input type="text" name="phone" class="form-control mb-2" value="<?= $user['phone'] ?>" placeholder="SĐT">
+                                    <input type="text" name="address" class="form-control mb-2" value="<?= $user['address'] ?>" placeholder="Địa chỉ">
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="submit" class="btn btn-success">Cập nhật</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                                    </div>
+                                </div>
+                                </form>
+                            </div>
+                            </div>
+                            | <a href="../backEnd/user/delete-user.php?id=<?= $user['id'] ?>" class="btn btn-primary btn-sm" onclick="return confirm('Xoá người dùng này?')">Xoá</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
-
+        
         <!-- Form sửa -->
         <div class="edit-user-form" id="editUserForm" style="display: none;">
             <h2>Sửa người dùng</h2>
@@ -1157,6 +1216,8 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
     <script src="../assets/js/plugins.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         document.querySelectorAll('.menu-toggle').forEach(item => {
             item.addEventListener('click', event => {
